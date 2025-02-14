@@ -1,0 +1,44 @@
+# Node modules (for all projects)
+**/node_modules/
+
+# Build output directories (adjust if you use a different outDir)
+**/build/
+**/dist/
+
+# Logs and runtime data
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (keep secrets out of version control)
+.env
+.env.local
+.env.*.local
+
+# TypeScript cache and build info
+*.tsbuildinfo
+
+# Optional: Coverage directory (if you're using testing tools like Jest)
+coverage/
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Docker files (if you generate override files locally)
+docker-compose.override.yml
+
+# Ignore any local config or secret files (adjust as needed)
+*.pem
+*.key
+*.crt
