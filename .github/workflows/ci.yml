@@ -13,23 +13,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
 
-      # Optional: If you have a root-level package.json for common scripts, otherwise remove this step.
-      # - name: Install Dependencies
-      #   run: npm install
+    - name: Enable memory overcommit
+      run: sudo sysctl -w vm.overcommit_memory=1
 
-      - name: Build and Test with Docker Compose
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        run: |
-          docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
-          docker compose -f config/docker-compose.yml down
+    - name: Build and Test with Docker Compose
+      env:
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      run: |
+        docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
+        docker compose -f config/docker-compose.yml down
