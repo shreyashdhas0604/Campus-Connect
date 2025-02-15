@@ -11,26 +11,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # 1. Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
+      # 2. Set up Node.js environment (using Node 18)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-    - name: Cache node modules
-      uses: actions/cache@v3
-      with:
-        path: '**/node_modules'
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+      # 3. Cache node_modules to speed up subsequent builds
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          # This pattern recursively caches all node_modules directories
+          path: '**/node_modules'
+          # The key is based on the OS and the hash of package-lock.json files
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-    - name: Install dependencies
-      run: npm install
+      # 4. Install dependencies for the repository
+      - name: Install dependencies
+        run: npm install
 
-    - name: Build and Test with Docker Compose
-      run: |
-        docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
-        docker compose -f config/docker-compose.yml down
+      # 5. Build and test the project using Docker Compose
+      - name: Build and Test with Docker Compose
+        run: |
+          # Use Docker Compose v2 command (with a space)
+          docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
+          docker compose -f config/docker-compose.yml down
