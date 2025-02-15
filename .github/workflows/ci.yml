@@ -19,8 +19,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Dependencies
-        run: npm install
+      # - name: Install Dependencies
+      #   run: npm install
 
       - name: Build and Test with Docker Compose
         run: |
