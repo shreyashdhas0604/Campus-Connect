@@ -12,3 +12,4 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Club-Service Server started on port ${port}`);
 });
+ 
