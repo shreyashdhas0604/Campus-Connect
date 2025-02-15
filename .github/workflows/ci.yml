@@ -1,0 +1,44 @@
+name: CI Pipeline
+
+# Trigger on pushes and pull requests to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js (if needed for linting/tests)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Step 3: Cache Node modules to speed up builds
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: (Optional) Run linting and tests for individual services if you have them.
+      # For example, if you have a script "npm run lint" at the root or in a specific service:
+      # - name: Run lint
+      #   run: npm run lint
+
+      # Step 5: Build and test your Docker Compose setup
+      - name: Build and test with Docker Compose
+        run: |
+          docker-compose -f config/docker-compose.yml up --build --abort-on-container-exit
+          docker-compose -f config/docker-compose.yml down
