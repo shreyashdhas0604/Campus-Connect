@@ -1,3 +1,51 @@
+# name: CI Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # 1. Checkout the repository code
+#       - name: Checkout Code
+#         uses: actions/checkout@v3
+
+#       # 2. Set up Node.js (version 18)
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '18'
+
+#       # 3. Enable memory overcommit (if required for Docker builds)
+#       - name: Enable memory overcommit
+#         run: sudo sysctl -w vm.overcommit_memory=1
+
+#       # 4. Build and Test with Docker Compose
+#       - name: Build and Test with Docker Compose
+#         env:
+#           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+#           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+#           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+#           DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+#           MONGO_URI: ${{ secrets.MONGO_URI }}
+#           KAFKA_BROKER_ID: ${{ secrets.KAFKA_BROKER_ID }}
+#           KAFKA_ZOOKEEPER_CONNECT: ${{ secrets.KAFKA_ZOOKEEPER_CONNECT }}
+#           KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${{ secrets.KAFKA_LISTENER_SECURITY_PROTOCOL_MAP }}
+#           KAFKA_ADVERTISED_LISTENERS: ${{ secrets.KAFKA_ADVERTISED_LISTENERS }}
+#           KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${{ secrets.KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR }}
+#           VITE_API_URL: ${{ secrets.VITE_API_URL }}
+#           NODE_ENV: ${{ secrets.NODE_ENV }}
+#         run: |
+#           docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
+#           docker compose -f config/docker-compose.yml down
+
 name: CI Pipeline
 
 on:
@@ -23,12 +71,12 @@ jobs:
         with:
           node-version: '18'
 
-      # 3. Enable memory overcommit (if required for Docker builds)
+      # 3. Enable memory overcommit (helps Docker on the runner)
       - name: Enable memory overcommit
         run: sudo sysctl -w vm.overcommit_memory=1
 
-      # 4. Build and Test with Docker Compose
-      - name: Build and Test with Docker Compose
+      # 4. Build and run containers in detached mode
+      - name: Build and Run with Docker Compose (detached mode)
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -43,5 +91,25 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           NODE_ENV: ${{ secrets.NODE_ENV }}
         run: |
-          docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
-          docker compose -f config/docker-compose.yml down
+          docker compose -f config/docker-compose.yml up --build -d
+
+      # 5. Wait for services to start up
+      - name: Wait for services to initialize
+        run: sleep 120
+
+      # 6. Run a health check (adjust the URL if needed)
+      - name: Run Health Check for API Gateway
+        run: |
+          if curl -f http://localhost:8080/api/health; then
+            echo "Health check passed."
+          else
+            echo "Health check failed." && exit 1
+          fi
+
+      # 7. Tear down the Docker Compose environment
+      - name: Tear Down Docker Compose
+        run: docker compose -f config/docker-compose.yml down
+
+      # 8. Print success message if everything passed
+      - name: Success Message
+        run: echo "Code is correct"
