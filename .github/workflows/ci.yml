@@ -2,9 +2,11 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -19,10 +21,15 @@ jobs:
         with:
           node-version: '18'
 
+      # Optional: If you have a root-level package.json for common scripts, otherwise remove this step.
       # - name: Install Dependencies
       #   run: npm install
 
       - name: Build and Test with Docker Compose
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         run: |
           docker compose -f config/docker-compose.yml up --build --abort-on-container-exit
           docker compose -f config/docker-compose.yml down
