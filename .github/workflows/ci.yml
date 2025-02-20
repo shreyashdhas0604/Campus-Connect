@@ -27,12 +27,6 @@ jobs:
       - name: Enable memory overcommit
         run: sudo sysctl -w vm.overcommit_memory=1
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
       # 4. Build and run containers in detached mode
       - name: Build and Run with Docker Compose (detached mode)
         env:
