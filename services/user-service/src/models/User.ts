@@ -1,5 +1,4 @@
 // user-service/models/User.ts
-// This is the User model file. This file contains the User class which is used to create User objects. The User class has the following properties:
 import { Role,Div,Year,Department } from '@prisma/client';
 
 export class User {

@@ -47,7 +47,7 @@ jobs:
 
       # 5. Wait for services to start up
       - name: Wait for services to initialize
-        run: sleep 60
+        run: sleep 120
 
       # 6. Run a health check (adjust the URL if needed)
       - name: Run Health Check for API Gateway

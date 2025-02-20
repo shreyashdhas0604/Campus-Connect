@@ -1,7 +1,7 @@
 import { User } from "../models/User";
 import { ApiResponse } from "../utils/ApiResponse";
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import logger from "../utils/logger";
 
@@ -34,8 +34,8 @@ private prisma: PrismaClient;
             if(prevuser){
                 return new ApiResponse(false, "User already exists", 400, null);
             }
-            const salt = await bcrypt.genSalt(10);
-            userData.password = await bcrypt.hash(userData.password, salt);
+            const salt = bcryptjs.genSaltSync(10);
+            userData.password = bcryptjs.hashSync(userData.password, salt);
             const newUser = await this.prisma.user.create({
                 data: userData
             });
@@ -163,7 +163,7 @@ private prisma: PrismaClient;
             if(!user){
                 return new ApiResponse(false, "User not found", 404, null);
             }
-            const validPassword = await bcrypt.compare(password, user.password);
+            const validPassword = bcryptjs.compareSync(password, user.password);
             if(!validPassword){
                 return new ApiResponse(false, "Invalid password", 400, null);
             }
@@ -194,6 +194,9 @@ private prisma: PrismaClient;
                     userId: user.id
                 }
             });
+            if(!refreshTokenData){
+                return new ApiResponse(false, "Error in logging in", 500, null);
+            }
             return new ApiResponse(true, "User logged in", 200, { accessToken, refreshToken });
         } catch (error) {
             logger('\nError in UserService.ts loginUser(): ' + error);
