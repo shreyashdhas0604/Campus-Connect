@@ -1,6 +1,6 @@
 // user-service/models/User.ts
-import { Role,Div,Year,Department } from '@prisma/client';
-
+import {Role,Div,Department, Year} from '@prisma/client';
+ 
 export class User {
     constructor(
       public id: number,
@@ -13,7 +13,7 @@ export class User {
       public emailVerified: boolean = false,
       public verificationToken: string | null = null,
       public otp: number | null = null,
-      public year: Year,
+      public year : Year,
       public division: Div,
       public profilePic: string | null = null,
       public createdAt: Date = new Date(),
