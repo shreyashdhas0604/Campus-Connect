@@ -121,6 +121,10 @@
     "outDir": "./build",                     
     "rootDir": "./src",                      
     "strict": true,                          
+    "baseUrl": "./",
+    "paths": {                              
+      "@prisma/client" : ["./node_modules/@prisma/client"]
+    },
     "esModuleInterop": true,                 
     "skipLibCheck": true,                    
     "forceConsistentCasingInFileNames": true 
