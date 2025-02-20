@@ -1,0 +1,75 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  username          String    @unique
+  name              String
+  password          String
+  department        Department 
+  role              Role    @default(student)
+  emailVerified     Boolean   @default(false)
+  verificationToken String?   
+  otp               Int?
+  year              Year
+  division          Div
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  RefreshToken      RefreshToken[]
+}
+
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+enum Role {
+  student
+  admin
+  superadmin
+}
+
+enum Department {
+    CE
+    IT
+    ENTC
+}
+
+enum Year {
+    FIRST
+    SECOND
+    THIRD
+    FOURTH
+}
+
+enum Div {
+    DIV1
+    DIV2
+    DIV3
+    DIV4
+    DIV5
+    DIV6
+    DIV7
+    DIV8
+    DIV9
+    DIV10
+    DIV11
+    DIV12
+    DIV13
+}
+
