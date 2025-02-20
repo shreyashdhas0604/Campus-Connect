@@ -20,6 +20,7 @@ model User {
   otp               Int?
   year              Year
   division          Div
+  profilePic        String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
