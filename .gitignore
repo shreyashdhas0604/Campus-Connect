@@ -42,3 +42,6 @@ docker-compose.override.yml
 *.pem
 *.key
 *.crt
+
+#ignore logs.txt in each service src folder
+**/src/**/logs.txt
