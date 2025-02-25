@@ -3,7 +3,7 @@ import { UserController } from '../controllers/userController';
 import { authenticateAdmin,authenticateToken } from '../utils/middleware';
 
 const userController = new UserController();
-const router = Router();
+const router = Router(); 
 
 // Define your routes here
 router.get('/health', userController.healthCheck.bind(userController));

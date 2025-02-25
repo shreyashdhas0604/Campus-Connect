@@ -4,7 +4,7 @@ import router from './routes/userRoutes';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
-import http from 'http';
+import http from 'http';  
 
 dotenv.config();
 const app = express();
@@ -42,7 +42,7 @@ async function closeDatabaseConnection() {
           exposedHeaders: ['set-cookie','Authorization'],
         }
       ));
-      app.use('/user', router);
+      app.use('/', router);
       app.set('PORT', port);
       app.set('BASE_URL', process.env.BASE_URL || 'localhost');
 
