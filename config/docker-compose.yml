@@ -113,15 +113,28 @@ services:
   # --------------------------
   # Frontend (React via Vite)
   # --------------------------
+  # frontend:
+  #   build:
+  #     context: ../frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "80:80"
+  #   environment:
+  #     - NODE_ENV=${NODE_ENV}
+  #     - VITE_API_URL=${VITE_API_URL}
+
   frontend:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile
+      context: ../frontend        # The folder containing your Dockerfile and app code
+      dockerfile: Dockerfile       # Specify the Dockerfile (optional if it's named 'Dockerfile')
     ports:
-      - "80:80"
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app           # Mount your local frontend directory to /app in the container
+      - /app/node_modules         # Prevent overwriting node_modules in the container
     environment:
-      - NODE_ENV=${NODE_ENV}
-      - VITE_API_URL=${VITE_API_URL}
+      - NODE_ENV=development 
+
 
   # --------------------------------
   # Nginx Reverse Proxy Configuration

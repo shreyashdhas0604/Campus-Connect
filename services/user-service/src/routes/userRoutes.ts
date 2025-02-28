@@ -4,12 +4,12 @@ import { authenticateAdmin,authenticateToken } from '../utils/middleware';
 
 const userController = new UserController();
 const router = Router(); 
-
+//base url = http://localhost:8085/user/
 // Define your routes here
 router.get('/health', userController.healthCheck.bind(userController));
 router.get('/users', userController.getUsers.bind(userController));
 router.get('/user/:id', authenticateToken, userController.getUser.bind(userController));
-router.post('/register-user', authenticateToken, authenticateAdmin, userController.createUser.bind(userController));
+router.post('/register-user', userController.createUser.bind(userController));
 router.put('/update-email/:id', authenticateToken, authenticateAdmin, userController.updateEmailVerifiedStatus.bind(userController));
 router.put('/update-otp/:id', authenticateToken, authenticateAdmin, userController.updateOtp.bind(userController));
 router.delete('/delete-user/:id', authenticateToken, authenticateAdmin, userController.deleteUser.bind(userController));

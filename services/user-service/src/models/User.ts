@@ -20,4 +20,4 @@ export class User {
       public updatedAt: Date = new Date()
     ) {}
   }
-  
+   

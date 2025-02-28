@@ -38,6 +38,8 @@ async function closeDatabaseConnection() {
       app.use(express.json());
       app.use(cors(
         {
+          origin : ["http://localhost:5173","http://localhost:8085"],
+          methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
           credentials: true,
           exposedHeaders: ['set-cookie','Authorization'],
         }

@@ -22,7 +22,7 @@ private prisma: PrismaClient;
 
     public async createUser(user: any): Promise<ApiResponse>{
         try {
-            const userData = user as User;
+            const userData = user ;
             if(!userData){
                 return new ApiResponse(false, "Invalid user data", 400, null);
             }
@@ -37,13 +37,29 @@ private prisma: PrismaClient;
             const salt = bcryptjs.genSaltSync(10);
             userData.password = bcryptjs.hashSync(userData.password, salt);
             const newUser = await this.prisma.user.create({
-                data: userData
+                data: {
+                    name: userData.name,
+                    email: userData.email,
+                    username: userData.username,
+                    password: userData.password,
+                    role: userData.role,
+                    emailVerified: false,
+                    otp: null,
+                    department : userData.department,
+                    year : userData.year,
+                    division : userData.division
+                }
             });
             if(!newUser){
-                return new ApiResponse(false, "Error in creating user", 500, null);
+                return new ApiResponse(false, "Error in creating user", 500, newUser);
             }
-            return new ApiResponse(true, "User created successfully", 201, newUser);
+            const newuser = {
+                ...newUser,
+                password: false
+            }
+            return new ApiResponse(true, "User created successfully", 201, newuser);
         } catch (error) {
+            console.log('\nError in UserService.ts createUser(): ' + error);
             logger('\nError in UserService.ts createUser(): ' + error);
             return new ApiResponse(false, "Error in creating user", 500, null);
         }
