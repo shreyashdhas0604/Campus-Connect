@@ -6,6 +6,7 @@ import RegisterUser from './pages/UserRegistration'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
+import Profile from './pages/UserProfile'
 
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
           <Route path="/" element={<Home />} />
             <Route path="/register" element={<RegisterUser />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
       </Router>
     </>

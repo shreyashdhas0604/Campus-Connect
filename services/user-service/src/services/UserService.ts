@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import logger from "../utils/logger";
+import fs from 'fs';
+// import cloudinaryService from "../utils/cloudinary";
+import cloudinary from "../utils/cloudinary";
 
 export class UserService{
 private prisma: PrismaClient;
@@ -188,12 +191,10 @@ private prisma: PrismaClient;
                 return new ApiResponse(false, "Error in generating token", 500, null);
             }
             const payload = {
-                user: {
                     id: user.id,
                     email: user.email,
                     username: user.username,
                     role: user.role
-                }
             };
             const accessToken = jwt.sign(payload, secret, { expiresIn: '1h' });
 
@@ -295,6 +296,61 @@ private prisma: PrismaClient;
         } catch (error) {
             logger('\nError in UserService.ts refreshToken(): ' + error);
             return new ApiResponse(false, "Error in refreshing token", 500, null);
+        }
+    }
+
+    public async getProfile(userId: number): Promise<ApiResponse>{
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    id: userId
+                }
+            });
+            if(!user){
+                return new ApiResponse(false, "User not found", 404, null);
+            }
+            return new ApiResponse(true, "User found", 200, user);
+        } catch (error) {
+            console.log('\nError in UserService.ts getProfile(): ' + error);
+            return new ApiResponse(false, "Error in fetching user", 500, null);
+        }
+    }
+
+    public async updateProfile(userId: number, userData: any): Promise<ApiResponse>{
+        try {
+            userData.profilePic = userData.profilePic ? userData.profilePic : null;
+            console.log("User Data: ", userData);
+            if(userData.profilePic){
+                const image = userData.profilePic;
+                const result = await cloudinary.uploader.upload(image.path,{
+                    folder: 'campus-connect/profiles',
+                    public_id: `${userId}-profile`,
+                });
+                userData.profilePic = result.secure_url;
+                fs.unlinkSync(image.path);
+            }
+
+
+            const user = await this.prisma.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    name: userData.name,
+                    username: userData.username,
+                    department: userData.department,
+                    year: userData.year,
+                    division: userData.division,
+                    profilePic : userData.profilePic
+                }
+            });
+            if(!user){
+                return new ApiResponse(false, "User not found", 404, null);
+            }
+            return new ApiResponse(true, "User updated", 200, user);
+        } catch (error) {
+            console.log('\nError in UserService.ts updateProfile(): ' + error);
+            return new ApiResponse(false, "Error in updating user", 500, null);
         }
     }
 

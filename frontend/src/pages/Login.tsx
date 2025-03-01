@@ -44,6 +44,8 @@ const Login: React.FC = () => {
         const response = await apiClient.post<OLoginResponse>('/user/login', data);
         console.log('User Login Response:', response.data);
         const refToken = response?.data?.data?.refreshToken;
+        const acssToken = response?.data?.data?.accessToken;
+        localStorage.setItem('accessToken', acssToken);
         localStorage.setItem('refreshToken', refToken);
         alert('Login successful!');
     } catch (error) {

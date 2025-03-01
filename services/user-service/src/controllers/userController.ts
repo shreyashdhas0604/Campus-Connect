@@ -158,4 +158,29 @@ public async refreshToken(req: any, res: any) {
   }
 }
 
+public async getProfile(req: any, res: any) {
+  try {
+    const userId = parseInt(req.user.id);
+    const user = await this.userService.getProfile(userId);
+    const { statusCode, ...userData } = user;
+    res.status(statusCode).json(userData);
+  } catch (error) {
+    console.log(`\nError in getProfile  in userController.ts : ${error}`);
+    res.status(500).json({ success: false, message: 'Internal Server Error', data: null });
+  }
+}
+
+public async updateProfile(req: any, res: any) {
+  try {
+    const userId = parseInt(req.user.id);
+    const data = {...req.body,profilePic:req.file};
+    const user = await this.userService.updateProfile(userId,data);
+    const { statusCode, ...userData } = user;
+    res.status(statusCode).json(userData);
+  } catch (error) {
+    console.log(`\nError in updateProfile  in userController.ts : ${error}`);
+    res.status(500).json({ success: false, message: 'Internal Server Error', data: null });
+  }
+}
+
 }
