@@ -5,6 +5,9 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
 import http from 'http';  
+import { sendMessage } from './kafka/producer';
+import { runConsumer } from './kafka/consumer';
+import { connectConsumer,connectProducer } from './kafka/kafkaConfig';
 
 dotenv.config();
 const app = express();
@@ -48,6 +51,8 @@ async function closeDatabaseConnection() {
       app.set('PORT', port);
       app.set('BASE_URL', process.env.BASE_URL || 'localhost');
 
+      await startKafkaService();
+
       app.listen(port, () => {
         console.log(`Server is running at http://localhost:${port}`);
       });
@@ -64,6 +69,26 @@ async function closeDatabaseConnection() {
       console.error(`Error in closeUserServiceServer: ${error}`);
     }
   }
+
+  const startKafkaService = async () => {
+    try {
+      console.log("Starting Kafka Service...");
+  
+      await connectProducer();
+      await connectConsumer();
+      await runConsumer();
+  
+      setTimeout(async () => {
+        await sendMessage("Kafka-service-started", { message: "Kafka service has been started successfully!!" });
+      }, 5000);
+  
+    } catch (error) {
+      console.error("Error starting Kafka Service:", error);
+    }
+  };
+
+
+
 
   InitializeUserServiceServer();
 
