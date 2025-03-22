@@ -3,6 +3,8 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import apiClient from '../utils/apiClient';
+import toast,{Toaster} from 'react-hot-toast';
+
 
 // Define types for form input
 interface IUserFormInput {
@@ -42,14 +44,30 @@ const RegisterUser: React.FC = () => {
     try {
       const response = await apiClient.post('/user/register-user', data);
       console.log('User Registration Response:', response.data);
+      //clear the registration form and show a success message
+      // Clear the registration form
+      Object.keys(data).forEach(key => {
+        const inputElement = document.getElementById(key) as HTMLInputElement;
+        if (inputElement) {
+          inputElement.value = '';
+        }
+      });
+
+      toast.success('User registered successfully!');
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
     } catch (error) {
+      console.log(error);
+      const errorMessage = (error as any)?.response?.data?.message || 'An error occurred!';
+      toast.error(errorMessage);
       console.error('User Registration Error:', error);
     }
-    // Typically, you'd send a request to your API here.
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position='top-right'/>
       <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg">
         <h2 className="mb-2 text-center text-3xl font-extrabold text-gray-900">
           Campus Connect Registration

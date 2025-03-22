@@ -129,11 +129,9 @@ services:
       dockerfile: Dockerfile       # Specify the Dockerfile (optional if it's named 'Dockerfile')
     ports:
       - "5173:5173"
-    volumes:
-      - ../frontend:/app           # Mount your local frontend directory to /app in the container
-      - /app/node_modules         # Prevent overwriting node_modules in the container
     environment:
-      - NODE_ENV=development 
+      - NODE_ENV=development
+
 
 
   # --------------------------------
