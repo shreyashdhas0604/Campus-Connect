@@ -9,6 +9,7 @@ class APIClient {
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true // Enable sending cookies
     });
 
     this.initializeRequestInterceptor();
@@ -58,6 +59,7 @@ class APIClient {
   };
 }
 
+// Keep using the Nginx proxy URL
 const apiClient = new APIClient('http://localhost:8085/api');
 
 export default apiClient;

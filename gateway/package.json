@@ -14,7 +14,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "ts-node": "^10.9.1",
+    "nodemon": "^3.0.1"
   },
   "dependencies": {
     "express": "^4.21.2"

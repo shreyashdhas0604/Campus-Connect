@@ -7,6 +7,7 @@ import logger from "../utils/logger";
 import fs from 'fs';
 // import cloudinaryService from "../utils/cloudinary";
 import cloudinary from "../utils/cloudinary";
+import { sendMessage } from "../kafka/producer";
 
 export class UserService{
 private prisma: PrismaClient;
@@ -60,6 +61,13 @@ private prisma: PrismaClient;
                 ...newUser,
                 password: false
             }
+            // Publish user created event
+            await sendMessage("user-created", {
+                userId: newUser.id,
+                email: newUser.email,
+                role: newUser.role,
+                timestamp: new Date().toISOString()
+            });
             return new ApiResponse(true, "User created successfully", 201, newuser);
         } catch (error) {
             console.log('\nError in UserService.ts createUser(): ' + error);
@@ -112,6 +120,11 @@ private prisma: PrismaClient;
                 return new ApiResponse(false, "No user found", 404, null);
             }
 
+            await sendMessage("user-email-verified", {
+                userId: user.id,
+                emailVerified: emailVerified,
+                timestamp: new Date().toISOString()
+            });
             return new ApiResponse(true, "Email verified status updated", 200, user
             );
 
@@ -151,6 +164,10 @@ private prisma: PrismaClient;
             if(!user){
                 return new ApiResponse(false, "No user found", 404, null);
             }
+            await sendMessage("user-deleted", {
+                userId: user.id,
+                timestamp: new Date().toISOString()
+            });
             return new ApiResponse(true, "User deleted", 200, user);
 
         } catch (error) {
@@ -214,6 +231,10 @@ private prisma: PrismaClient;
             if(!refreshTokenData){
                 return new ApiResponse(false, "Error in logging in", 500, null);
             }
+            await sendMessage("user-logged-in", {
+                userId: user.id,
+                timestamp: new Date().toISOString()
+            });
             return new ApiResponse(true, "User logged in", 200, { accessToken, refreshToken });
         } catch (error) {
             logger('\nError in UserService.ts loginUser(): ' + error);
@@ -251,6 +272,10 @@ private prisma: PrismaClient;
             if(!isdeleted){
                 return new ApiResponse(false, "User not logged in", 400, null);
             }
+            await sendMessage("user-logged-out", {
+                userId: userId,
+                timestamp: new Date().toISOString()
+            });
             return new ApiResponse(true, "User logged out", 200, null);
         } catch (error) {
             logger('\nError in UserService.ts logoutUser(): ' + error);
@@ -347,6 +372,18 @@ private prisma: PrismaClient;
             if(!user){
                 return new ApiResponse(false, "User not found", 404, null);
             }
+            await sendMessage("user-profile-updated", {
+                userId: user.id,
+                timestamp: new Date().toISOString(),
+                updates: {
+                    name: userData.name,
+                    username: userData.username,
+                    department: userData.department,
+                    year: userData.year,
+                    division: userData.division,
+                    profilePicUpdated: !!userData.profilePic
+                }
+            });
             return new ApiResponse(true, "User updated", 200, user);
         } catch (error) {
             console.log('\nError in UserService.ts updateProfile(): ' + error);

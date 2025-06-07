@@ -1,0 +1,85 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+enum ClubRole {
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  TREASURER
+  MEMBER
+}
+
+enum ClubStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  REJECTED
+}
+
+enum ActivityStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  CANCELLED
+}
+
+enum ClubCategory {
+  ACADEMIC
+  SPORTS
+  CULTURAL
+  TECHNOLOGY
+  SOCIAL
+}
+
+model Club {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  image        String?
+  category    ClubCategory
+  status      ClubStatus  @default(PENDING)
+  meetingLocation String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  memberships Membership[]
+  activities  Activity[]
+}
+
+model Membership {
+  id        String    @id @default(uuid())
+  userId    String
+  clubId    String
+  role      ClubRole  @default(MEMBER)
+  joinedAt  DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  club      Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+}
+
+model Activity {
+  id          String   @id @default(uuid())
+  clubId      String
+  title       String
+  description String
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  status      String   @default("PENDING") // Add this line
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+}

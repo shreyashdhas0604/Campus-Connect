@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/userController';
+import { PasswordResetController } from '../controllers/PasswordResetController';
 import { authenticateAdmin,authenticateToken } from '../utils/middleware';
 import { uploadImage } from '../utils/middleware';
 
 const userController = new UserController();
+const passwordResetController = new PasswordResetController();
 const router = Router(); 
 //base url = http://localhost:8085/user/
 // Define your routes here
@@ -20,5 +22,10 @@ router.delete('/delete-user/:id', authenticateToken, authenticateAdmin, userCont
 router.post('/login', userController.loginUser.bind(userController));
 router.post('/refresh-token', userController.refreshToken.bind(userController));
 router.post('/logout', userController.logoutUser.bind(userController));
+
+// Password reset routes
+router.post('/request-password-reset', passwordResetController.requestPasswordReset.bind(passwordResetController));
+router.post('/verify-reset-token', passwordResetController.verifyResetToken.bind(passwordResetController));
+router.post('/reset-password', passwordResetController.resetPassword.bind(passwordResetController));
 
 export default router;

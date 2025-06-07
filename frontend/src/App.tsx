@@ -7,6 +7,11 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Profile from './pages/UserProfile'
+import EventListing from './pages/EvenListing'
+import ClubList from './pages/ClubList'
+import ClubDetail from './pages/ClubDetail'
+import ClubActivities from './pages/ClubActivities'
+import ClubCreation from './pages/ClubCreation'
 
 
 function App() {
@@ -38,8 +43,13 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
             <Route path="/register" element={<RegisterUser />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />``
             <Route path="/profile" element={<Profile />} />
+            <Route path="/event-listing" element={<EventListing />} />
+            <Route path="/clubs" element={<ClubList />} />
+            <Route path="/clubs/create" element={<ClubCreation />} />
+            <Route path="/clubs/:id" element={<ClubDetail />} />
+            <Route path="/clubs/:clubId/activities" element={<ClubActivities />} />
           </Routes>
       </Router>
     </>
