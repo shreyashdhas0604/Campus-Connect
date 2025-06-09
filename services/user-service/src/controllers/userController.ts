@@ -183,4 +183,31 @@ public async updateProfile(req: any, res: any) {
   }
 }
 
+public async requestOtp(req: any, res: any) {
+  try {
+    const userId = parseInt(req.params.id);
+    const user = await this.userService.requestOtp(userId);
+    const { statusCode,...userData } = user; 
+    res.status(statusCode).json({ success: true, message: 'Otp sent successfully', data: null});
+  } 
+  catch (error) {
+    console.log(`\nError in requestOtp  in userController.ts : ${error}`);
+    res.status(500).json({ success: false, message: 'Internal Server Error', data: null }); 
+  }
+}
+
+public async verifyOtp(req: any, res: any) {
+  try {
+    const { otp } = req.body;
+    const userId = parseInt(req.params.id);
+    const otp1 = parseInt(otp);
+    const user = await this.userService.verifyOtp(userId,otp1);
+    const { statusCode,...userData } = user;
+    res.status(statusCode).json({success: true,message: 'Otp verified successfully',data: userData});
+  } catch (error){
+    console.log(`\nError in verifyOtp  in userController.ts : ${error}`);
+    res.status(500).json({ success: false, message: 'Internal Server Error', data: null });
+  } 
+}
+
 }

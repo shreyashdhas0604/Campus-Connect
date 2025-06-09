@@ -3,6 +3,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import apiClient from '../utils/apiClient';
+import toast from 'react-hot-toast'; // Import toast for notifications
 
 interface IProfileFormInput {
   name: string;
@@ -12,6 +13,7 @@ interface IProfileFormInput {
   year: string;
   division: string;
   profilePic?: FileList | null;
+  otp?: string; // Add OTP field
 }
 
 const validationSchema = Yup.object().shape({
@@ -26,6 +28,10 @@ const validationSchema = Yup.object().shape({
       originalValue && (originalValue as FileList).length > 0 ? originalValue : null
     )
     .nullable(),
+  otp: Yup.string().when('emailVerified', {
+    is: false,
+    then: Yup.string().required('OTP is required for email verification'),
+  }),
 });
 
 const Profile: React.FC = () => {
@@ -34,6 +40,8 @@ const Profile: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [currentPicUrl, setCurrentPicUrl] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any>({});
+  const [emailVerified, setEmailVerified] = useState<boolean>(false); // Track email verification status
+  const [showOtpField, setShowOtpField] = useState<boolean>(false); // Track OTP field visibility
   const {
     register,
     handleSubmit,
@@ -65,6 +73,7 @@ const Profile: React.FC = () => {
         console.log('Profile data:', response.data);
         const userData = (response.data as { data: any }).data;
         setCurrentPicUrl(userData.profilePicUrl || null);
+        setEmailVerified(userData.emailVerified); // Set email verification status
         // Populate form fields with the fetched data.
         setProfileData(userData);
         reset({
@@ -95,6 +104,9 @@ const Profile: React.FC = () => {
     if (data.profilePic && data.profilePic.length > 0) {
       formData.append('profilePic', data.profilePic[0]);
     }
+    if (data.otp) {
+      formData.append('otp', data.otp); // Include OTP in form data
+    }
 
     try {
       const response: any = await apiClient.put('/user/update-profile', formData, {
@@ -120,6 +132,75 @@ const Profile: React.FC = () => {
     reset({ ...watch(), profilePic: null });
   };
 
+  const handleDeleteProfile = async () => {
+    try {
+      const user = localStorage.getItem('userData'); // Assuming userId is stored in local storage
+      const userId = user ? JSON.parse(user).id : null;
+      if (!userId) {
+        toast.error('User ID not found');
+        return;
+      }
+      const response = await apiClient.delete(`/user/delete-user/${userId}`);
+      if (response.status === 200) {
+        // toast.success('Profile deleted successfully');
+        // Clear local storage and redirect to home or login page
+        try {
+          const res = await apiClient.post(`/user/logout/${userId}`);
+          if(res.status === 200){
+            localStorage.removeItem('userData');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            toast.success('Logged out successfully');
+          }
+        } catch (error) {
+          
+        }
+        window.location.href = '/register';
+      } else {
+        toast.error('Failed to delete profile');
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast.error('An error occurred while deleting the profile');
+    }
+  };
+
+  const handleSendOtp = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId = user.id;
+      const response = await apiClient.get(`/user/request-otp/${userId}`);
+      if (response.status === 200) {
+        toast.success('OTP sent to your email');
+        setShowOtpField(true); // Show OTP field
+      } else {
+        toast.error('Failed to send OTP');
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      toast.error('An error occurred while sending OTP');
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const otp = watch('otp');
+    try {
+      const user = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId = user.id;
+      const response = await apiClient.post(`/user/verify-otp/${userId}`, { email: profileData.email, otp });
+      if (response.status === 200) {
+        toast.success('Email verified successfully');
+        setEmailVerified(true);
+        setShowOtpField(false); // Hide OTP field
+      } else {
+        toast.error('Failed to verify OTP');
+      }
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      toast.error('An error occurred while verifying OTP');
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
 
   // Compute background color class for inputs.
@@ -131,12 +212,20 @@ const Profile: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-extrabold text-gray-900">Profile Management</h2>
           {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-            >
-              Edit
-            </button>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleDeleteProfile}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete Profile
+              </button>
+            </div>
           )}
         </div>
         <div className="flex flex-col md:flex-row">
@@ -214,20 +303,63 @@ const Profile: React.FC = () => {
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="Email Address"
-                  {...register('email')}
-                  disabled={!isEditing}
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${inputBg}`}
-                />
+                <div className="flex items-center">
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="Email Address"
+                    {...register('email')}
+                    disabled={!isEditing}
+                    className={`mt-1 block w-full px-3 py-2 border ${
+                      errors.email ? 'border-red-500' : 'border-gray-300'
+                    } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${inputBg}`}
+                  />
+                  {emailVerified ? (
+                    <span className="ml-2 text-green-500">&#10003;</span> // Checkmark for verified
+                  ) : (
+                    <span className="ml-2 text-red-500">&#10007;</span> // Cross for not verified
+                  )}
+                </div>
+                {!emailVerified && (
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Verify Email
+                  </button>
+                )}
                 {errors.email && (
                   <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
                 )}
               </div>
+              {/* OTP Field */}
+              {showOtpField && (
+                <div>
+                  <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+                    OTP
+                  </label>
+                  <input
+                    id="otp"
+                    type="text"
+                    placeholder="Enter OTP"
+                    {...register('otp')}
+                    className={`mt-1 block w-full px-3 py-2 border ${
+                      errors.otp ? 'border-red-500' : 'border-gray-300'
+                    } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtp}
+                    className="mt-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Verify OTP
+                  </button>
+                  {errors.otp && (
+                    <p className="mt-1 text-xs text-red-600">{errors.otp.message}</p>
+                  )}
+                </div>
+              )}
               {/* Department Field */}
               <div>
                 <label htmlFor="department" className="block text-sm font-medium text-gray-700">

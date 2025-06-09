@@ -13,17 +13,22 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "typescript": "^5.7.3",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
+    "@types/dotenv": "^8.2.3",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.15.30",
+    "@types/nodemailer": "^6.4.17",
+    "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
-    "nodemon": "^3.0.1"
+    "typescript": "^5.7.3"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
-    "kafkajs": "^2.2.4"
+    "kafkajs": "^2.2.4",
+    "nodemailer": "^7.0.3"
   }
 }
- 

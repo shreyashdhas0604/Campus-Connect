@@ -1,0 +1,66 @@
+### 1. User Service
+Core functionalities:
+
+-✅ User registration and authentication                   
+-✅ Profile management (CRUD operations)
+-🟡 Role-based access control (Student, Admin, SuperAdmin)
+-🟡 Department and academic year management
+-✅ Email verification system
+-✅ JWT token management for authentication
+
+
+### 2. Club Service
+Core functionalities:
+
+- Club creation and management
+- Club membership handling
+- Club categories management (Academic, Sports, Cultural, Technology, Social)
+- Club activities/events organization
+- Club member roles (President, Secretary, Members)
+- Club approval workflow
+
+
+### 3. Event Service
+Core functionalities:
+
+- Event creation and management
+- Event registration/RSVP system
+- Event categories management
+- Event attendance tracking
+- Event scheduling and calendar integration
+- Event feedback/rating system
+
+
+### 4. Notification Service
+Core functionalities:
+
+- Real-time notifications for:
+  - Event reminders
+  - Club updates
+  - Registration confirmations
+  - Important announcements
+- Notification preferences management
+- Multi-channel notification delivery (in-app, email)
+- Notification history tracking
+
+
+### Common Infrastructure Requirements
+1. API Gateway:
+   
+   - Route management
+   - Authentication middleware
+   - Rate limiting
+   - Request/Response transformation
+2. Database Management:
+   
+   - User data (PostgreSQL)
+   - Event and activity logs (MongoDB)
+   - Caching layer (Redis)
+3. Message Queue:
+   
+   - Apache Kafka for event-driven communication between services
+   - Handle asynchronous operations
+
+
+
+   //paste this ✅ in front of the service which is completed and this ❌ which is cancelled for implementation and this 🟡 for which is to be later implemented

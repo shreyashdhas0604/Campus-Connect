@@ -235,7 +235,7 @@ private prisma: PrismaClient;
                 userId: user.id,
                 timestamp: new Date().toISOString()
             });
-            return new ApiResponse(true, "User logged in", 200, { accessToken, refreshToken });
+            return new ApiResponse(true, "User logged in", 200, { accessToken, refreshToken ,payload});
         } catch (error) {
             logger('\nError in UserService.ts loginUser(): ' + error);
             return new ApiResponse(false, "Error in logging in", 500, null);
@@ -388,6 +388,74 @@ private prisma: PrismaClient;
         } catch (error) {
             console.log('\nError in UserService.ts updateProfile(): ' + error);
             return new ApiResponse(false, "Error in updating user", 500, null);
+        }
+    }
+
+    public async requestOtp(id:number): Promise<any>{
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    id : id
+                }
+             }); 
+             if(!user){
+                return new ApiResponse(false, "User not found", 404, null);
+             }
+
+             if(user.emailVerified){
+                return new ApiResponse(false, "Email already verified", 400, null); 
+             }
+
+             const otp = Math.floor(100000 + Math.random() * 900000);
+             const userData = await this.updateOtp(id,otp);
+             if(!userData.success){
+                return new ApiResponse(false, "Error in updating OTP", 500, null);
+            }
+
+            await sendMessage("user-otp-requested", {
+                userId: id,
+                timestamp: new Date().toISOString(),
+                email: user.email,
+                otp: otp 
+            })
+            return new ApiResponse(true, "OTP sent successfully", 200, null);
+        } 
+        catch (error) {
+            console.log('\nError in UserService.ts requestOtp():'+ error);
+            return new ApiResponse(false, "Error in requesting OTP", 500, null);
+        }
+    }
+
+    public async verifyOtp(id: number, otp1: number): Promise<any>{
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: {
+                    id : id
+                }
+            }); 
+            if(!user){
+                return new ApiResponse(false, "User not found", 404, null);  
+            }
+            console.log("Type of user.otp:", typeof user.otp, "Type of otp1:", typeof otp1);
+            console.log("otp in the userdata : ",user.otp,"otp in the request : ",otp1);
+            if(user.otp !== otp1){
+                return new ApiResponse(false, "Invalid OTP", 400, null); 
+            }
+            const userData = await this.updateEmailVerifiedStatus(id,true);
+            if(!userData.success){
+                return new ApiResponse(false, "Error in updating email verified status", 500, null);
+          
+            }
+            await sendMessage("user-otp-verified", {
+                userId: id,
+                timestamp: new Date().toISOString()
+            
+            });
+            return new ApiResponse(true, "Email verified successfully", 200, null);
+        }
+        catch (error) {
+            console.log('\nError in UserService.ts verifyOtp():'+ error);
+            return new ApiResponse(false, "Error in verifying OTP", 500, null); 
         }
     }
 

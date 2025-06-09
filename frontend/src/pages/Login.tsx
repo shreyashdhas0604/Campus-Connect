@@ -47,6 +47,8 @@ const Login: React.FC = () => {
         const acssToken = response?.data?.data?.accessToken;
         localStorage.setItem('accessToken', acssToken);
         localStorage.setItem('refreshToken', refToken);
+        localStorage.setItem('userData', JSON.stringify(response?.data?.data?.payload));
+        window.location.href = '/';
         alert('Login successful!');
     } catch (error) {
         console.error('User Login Error:', error);
