@@ -34,4 +34,10 @@ export class MembershipController {
         const response = await this.membershipService.removeMember(parseInt(userId), parseInt(clubId));
         res.status(response.statusCode).json(response);
     };
+
+    public getMemberRole = async (req: Request, res: Response): Promise<void> => {
+        const { clubId, userId } = req.params;
+        const response = await this.membershipService.getMemberRole(parseInt(userId), parseInt(clubId));
+        res.status(response.statusCode).json(response);
+    };
 }

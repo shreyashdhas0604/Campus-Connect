@@ -1,16 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiClient from '../utils/apiClient';
+import { useNavigate } from 'react-router-dom';
+
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  contactNumber: string;
+  year: string;
+  division: string;
+  department: string;
+  profilePic: string;
+}
 
 interface Member {
   id: string;
   userId: string;
   role: string;
   joinedAt: string;
-  user: {
-    name: string;
-    email: string;
-  };
+  user: UserData;
+}
+
+interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status?: string;
 }
 
 interface Activity {
@@ -30,6 +45,7 @@ interface Club {
   createdAt: string;
   members: Member[];
   activities: Activity[];
+  memberships: any[];
 }
 
 const ROLES = [
@@ -49,6 +65,10 @@ const ClubDetail = () => {
   const [myuser, setMyuser] = useState<any>({});
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [showMemberModal, setShowMemberModal] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchClubDetails();
@@ -59,17 +79,14 @@ const ClubDetail = () => {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem('userData') || '{}');
       const userId = user.id;
-      console.log(userId);
-      const response = await apiClient.get(`/club/clubs/${id}`);
-      console.log(response.data);
-      let clubData = (response.data as any).data;
-      console.log(clubData);
+      const response = await apiClient.get<ApiResponse<Club>>(`/club/clubs/${id}`);
+      let clubData = response.data.data;
 
       // Fetch user details for each member
       const membersWithDetails = await Promise.all(
         clubData.memberships.map(async (member: any) => {
-          const userResponse = await apiClient.get(`/user/user/${member.userId}`);
-          const userData = (userResponse.data as any).data;
+          const userResponse = await apiClient.get<ApiResponse<UserData>>(`/user/user/${member.userId}`);
+          const userData = userResponse.data.data;
           return {
             ...member,
             user: userData
@@ -77,7 +94,6 @@ const ClubDetail = () => {
         })
       );
 
-      console.log(membersWithDetails);
       setClub({
         ...clubData,
         members: Array.isArray(membersWithDetails) ? membersWithDetails : [],
@@ -85,17 +101,9 @@ const ClubDetail = () => {
       });
 
       // Check user's role in the club
-      const userClubsResponse = await apiClient.get(`club/users/${userId}/clubs`);
-      console.log("userClubResponse.data : ", userClubsResponse.data?.data);
-      const userClubs = userClubsResponse.data?.data || [];
-      console.log("userClubs : ", userClubs);
-      const userClub = userClubs.find((c: any) => {
-        console.log("c : ", c);
-        console.log("id : ", id);
-        console.log("c.clubId : ", c.clubId);
-        return c.clubId === parseInt(id);
-      });
-      console.log("userClub : ", userClub);
+      const userClubsResponse = await apiClient.get<ApiResponse<any[]>>(`club/users/${userId}/clubs`);
+      const userClubs = userClubsResponse.data.data || [];
+      const userClub = userClubs.find((c: any) => c.clubId === parseInt(id || '0'));
       setUserRole(userClub?.role || null);
     } catch (err) {
       setError('Failed to fetch club details.');
@@ -182,6 +190,28 @@ const ClubDetail = () => {
     }
   };
 
+  const handleMemberClick = async (member: Member) => {
+    try {
+      const response = await apiClient.get<ApiResponse<UserData>>(`/user/user/${member.userId}`);
+      const userData = response.data.data;
+      setSelectedMember({
+        ...member,
+        user: {
+          ...member.user,
+          ...userData
+        }
+      });
+      setShowMemberModal(true);
+    } catch (err) {
+      setError('Failed to fetch member details.');
+    }
+  };
+
+  const closeMemberModal = () => {
+    setShowMemberModal(false);
+    setSelectedMember(null);
+  };
+
   if (loading) return <div>Loading club details...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!club) return <div>Club not found</div>;
@@ -239,8 +269,22 @@ const ClubDetail = () => {
           <h2 className="text-2xl font-semibold mb-4">Members</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {club.members.map((member) => (
-              <div key={member.id} className="border rounded-lg p-4">
-                <h3 className="font-semibold">{member.user.name}</h3>
+              <div 
+                key={member.id} 
+                className="border rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => handleMemberClick(member)}
+              >
+                <div className="flex items-center space-x-3">
+                  <img 
+                    src={member.user.profilePic || 'https://via.placeholder.com/50'} 
+                    alt={member.user.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div>
+                    <h3 className="font-semibold">{member.user.name}</h3>
+                    <p className="text-gray-600 text-sm">{member.role.replace('_', ' ')}</p>
+                  </div>
+                </div>
                 
                 {/* Role display/edit */}
                 {editingMember === member.id ? (
@@ -258,13 +302,19 @@ const ClubDetail = () => {
                     </select>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleEditMemberRole(member.id, selectedRole)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditMemberRole(member.id, selectedRole);
+                        }}
                         className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
                       >
                         Save
                       </button>
                       <button
-                        onClick={cancelEditing}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cancelEditing();
+                        }}
                         className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
                       >
                         Cancel
@@ -281,7 +331,10 @@ const ClubDetail = () => {
                 {isAdmin && editingMember !== member.id && (
                   <div className="mt-3 flex gap-2">
                     <button
-                      onClick={() => startEditingMember(member.id, member.role)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEditingMember(member.id, member.role);
+                      }}
                       className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
                     >
                       Edit Role
@@ -289,7 +342,10 @@ const ClubDetail = () => {
                     {/* Don't show remove button for the current admin user */}
                     {member.userId !== currentUser.id && (
                       <button
-                        onClick={() => handleRemoveMember(member.userId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveMember(member.userId);
+                        }}
                         className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
                       >
                         Remove
@@ -302,11 +358,74 @@ const ClubDetail = () => {
           </div>
         </div>
 
+        {/* Member Details Modal */}
+        {showMemberModal && selectedMember && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white/95 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">Member Details</h2>
+                <button 
+                  onClick={closeMemberModal}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="flex flex-col items-center mb-6">
+                <img 
+                  src={selectedMember.user.profilePic || 'https://via.placeholder.com/150'} 
+                  alt={selectedMember.user.name}
+                  className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-white shadow-lg"
+                />
+                <h3 className="text-xl font-semibold text-gray-800">{selectedMember.user.name}</h3>
+                <p className="text-gray-600">{selectedMember.role.replace('_', ' ')}</p>
+              </div>
+
+              <div className="space-y-3 bg-white/50 p-4 rounded-lg">
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">Email:</span>
+                  <span className="text-gray-600">{selectedMember.user.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">Contact:</span>
+                  <span className="text-gray-600">{selectedMember.user.contactNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">Department:</span>
+                  <span className="text-gray-600">{selectedMember.user.department}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">Year:</span>
+                  <span className="text-gray-600">{selectedMember.user.year}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">Division:</span>
+                  <span className="text-gray-600">{selectedMember.user.division}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-700">Joined:</span>
+                  <span className="text-gray-600">{new Date(selectedMember.joinedAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Activities Section */}
         <div>
           <h2 className="text-2xl font-semibold mb-4">Activities</h2>
+          <button
+          onClick={() => navigate(`/clubs/${club.id}/activities`)}
+          className="mb-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Go to Activities Page
+        </button>
           <div className="space-y-4">
             {club.activities.map((activity) => (
+              
               <div key={activity.id} className="border rounded-lg p-4">
                 <h3 className="font-semibold">{activity.title}</h3>
                 <p className="text-gray-600 mb-2">{activity.description}</p>

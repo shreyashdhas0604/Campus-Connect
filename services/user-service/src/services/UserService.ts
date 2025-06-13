@@ -6,8 +6,15 @@ import jwt from 'jsonwebtoken';
 import logger from "../utils/logger";
 import fs from 'fs';
 // import cloudinaryService from "../utils/cloudinary";
-import cloudinary from "../utils/cloudinary";
+// import cloudinary from '../utils/cloudinary'
 import { sendMessage } from "../kafka/producer";
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!, // Use non-null assertion or proper checks
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
 
 export class UserService{
 private prisma: PrismaClient;

@@ -14,10 +14,10 @@ Core functionalities:
 
 -✅ Club creation and management
 -✅ Club membership handling
-- Club categories management (Academic, Sports, Cultural, Technology, Social)
-- Club activities/events organization
+-✅ Club categories management (Academic, Sports, Cultural, Technology, Social)
+-✅ Club activities/events organization
 -✅ Club member roles (President, Secretary, Members)
-- Club approval workflow
+-✅ Club approval workflow
 
 
 ### 3. Event Service

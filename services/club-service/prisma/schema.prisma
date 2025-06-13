@@ -25,9 +25,9 @@ enum ClubStatus {
 }
 
 enum ActivityStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
+  UPCOMING
+  ONGOING
+  COMPLETED
   CANCELLED
 }
 
@@ -77,7 +77,7 @@ model Activity {
   startDate   DateTime
   endDate     DateTime?
   location    String?
-  status      String   @default("PENDING") // Add this line
+  status      ActivityStatus   @default(UPCOMING) // Add this line
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

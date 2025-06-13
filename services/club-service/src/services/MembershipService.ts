@@ -229,4 +229,16 @@ export class MembershipService {
             return new ApiResponse(false, 'Error updating member role', 500, null); 
         }
     }
+
+    public async getMemberRole(userId: number, clubId: number): Promise<ApiResponse> {
+        try {
+            const membership = await this.prisma.membership.findUnique({
+                where: { userId_clubId: { userId, clubId } }
+            });
+            return new ApiResponse(true, 'Member role retrieved successfully', 200, membership?.role);
+        } catch (error) {
+            logger('\nError in MembershipService.ts getMemberRole(): ' + error);
+            return new ApiResponse(false, 'Error retrieving member role', 500, null);
+        }
+    }
 }

@@ -23,9 +23,13 @@ export class ActivityService {
 
             const activity = await this.prisma.activity.create({
                 data: {
-                    ...activityData,
-                    clubId,
-                    status: 'PENDING'
+                    title: activityData.title,
+                    description: activityData.description,
+                    location: activityData.location,
+                    startDate: new Date(activityData.startDate),
+                    endDate: new Date(activityData.endDate),
+                    clubId : clubId,
+                    status: 'UPCOMING'
                 }
             });
 
@@ -66,7 +70,7 @@ export class ActivityService {
         try {
             const activity = await this.prisma.activity.update({
                 where: { id: activityId },
-                data: { status: status as 'PENDING' | 'APPROVED' | 'REJECTED' }
+                data: { status: status as 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED' }
             });
 
             return new ApiResponse(true, 'Activity status updated successfully', 200, activity);
@@ -132,7 +136,7 @@ export class ActivityService {
                     startDate: {
                         gte: new Date()
                     },
-                    status: 'APPROVED'
+                    status: 'UPCOMING'
                 },
                 orderBy: { startDate: 'asc' },
                 skip,

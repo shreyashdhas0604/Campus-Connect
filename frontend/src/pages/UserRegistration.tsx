@@ -49,7 +49,7 @@ const RegisterUser: React.FC = () => {
       const response = await apiClient.post('/user/register-user', data);
       console.log('User Registration Response:', response.data);
       //clear the registration form and show a success message
-      // Clear the registration form
+      // Clear the registration forma
       Object.keys(data).forEach(key => {
         const inputElement = document.getElementById(key) as HTMLInputElement;
         if (inputElement) {
@@ -142,6 +142,22 @@ const RegisterUser: React.FC = () => {
             />
             {errors.password && (
               <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+          <div>
+            <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700">
+            </label>
+            <input
+              id="contactNumber"
+              type="tel"
+              placeholder="Contact Number"
+              {...register('contactNumber')}
+              className={`mt-1 block w-full px-3 py-2 border ${
+                errors.contactNumber ? 'border-red-500' : 'border-gray-300'
+              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+            />
+            {errors.contactNumber && (
+              <p className="mt-1 text-xs text-red-600">{errors.contactNumber.message}</p>
             )}
           </div>
           <div>
