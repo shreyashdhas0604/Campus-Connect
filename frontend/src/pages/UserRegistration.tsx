@@ -15,6 +15,7 @@ interface IUserFormInput {
   department: string;
   year: string;
   division: string;
+  contactNumber : string;
 }
 
 // Create a Yup validation schema
@@ -27,7 +28,10 @@ const validationSchema = Yup.object().shape({
     .min(6, 'Password must be at least 6 characters'),
   department: Yup.string().required('Department is required'),
   year: Yup.string().required('Year is required'),
-  division: Yup.string().required('Division is required')
+  division: Yup.string().required('Division is required'),
+  contactNumber : Yup.string()
+  .required('Contact Number is required')
+  .matches(/^\d{10}$/, 'Contact Number must be 10 digits'),
 });
 
 const RegisterUser: React.FC = () => {

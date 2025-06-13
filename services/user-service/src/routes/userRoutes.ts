@@ -11,7 +11,7 @@ const router = Router();
 // Define your routes here
 router.get('/health', userController.healthCheck.bind(userController));
 router.get('/users', userController.getUsers.bind(userController));
-router.get('/user/:id', authenticateToken, userController.getUser.bind(userController));
+router.get('/user/:id', authenticateToken, userController.getUser.bind(userController)); 
 router.get('/profile', authenticateToken, userController.getProfile.bind(userController));
 // router.put('/update-profile', authenticateToken, userController.updateProfile.bind(userController));
 router.post('/register-user', userController.createUser.bind(userController));

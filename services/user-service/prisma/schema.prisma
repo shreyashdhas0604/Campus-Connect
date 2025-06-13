@@ -16,6 +16,7 @@ model User {
   password          String
   department        Department 
   role              Role    @default(student)
+  contactNumber     String
   emailVerified     Boolean   @default(false)
   verificationToken String?   
   otp               Int?

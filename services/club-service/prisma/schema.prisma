@@ -9,6 +9,7 @@ generator client {
 }
 
 enum ClubRole {
+  ADMIN
   PRESIDENT
   VICE_PRESIDENT
   SECRETARY
@@ -39,7 +40,7 @@ enum ClubCategory {
 }
 
 model Club {
-  id          String      @id @default(uuid())
+  id          Int      @id @default(autoincrement())
   name        String      @unique
   description String
   image        String?
@@ -55,9 +56,9 @@ model Club {
 }
 
 model Membership {
-  id        String    @id @default(uuid())
-  userId    String
-  clubId    String
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  clubId    Int
   role      ClubRole  @default(MEMBER)
   joinedAt  DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -69,8 +70,8 @@ model Membership {
 }
 
 model Activity {
-  id          String   @id @default(uuid())
-  clubId      String
+  id          Int   @id @default(autoincrement())
+  clubId      Int
   title       String
   description String
   startDate   DateTime

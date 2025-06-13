@@ -10,8 +10,17 @@ export class MembershipService {
         this.prisma = new PrismaClient();
     }
 
-    public async joinClub(userId: string, clubId: string): Promise<ApiResponse> {
+    public async joinClub(clubId: number, userId: number): Promise<ApiResponse> {
         try {
+            // Check if the club exists
+            const clubExists = await this.prisma.club.findUnique({
+                where: { id: clubId }
+            });
+
+            if (!clubExists) {
+                return new ApiResponse(false, 'Club does not exist', 404, null);
+            }
+
             const existingMembership = await this.prisma.membership.findUnique({
                 where: {
                     userId_clubId: {
@@ -29,7 +38,6 @@ export class MembershipService {
                 data: {
                     userId,
                     clubId,
-                    role: ClubRole.MEMBER
                 },
                 include: {
                     club: true
@@ -50,7 +58,7 @@ export class MembershipService {
         }
     }
 
-    public async leaveClub(userId: string, clubId: string): Promise<ApiResponse> {
+    public async leaveClub(userId: number, clubId: number): Promise<ApiResponse> {
         try {
             const membership = await this.prisma.membership.findUnique({
                 where: {
@@ -95,7 +103,7 @@ export class MembershipService {
         }
     }
 
-    public async updateMemberRole(userId: string, clubId: string, newRole: ClubRole): Promise<ApiResponse> {
+    public async updateMemberRole(userId: number, clubId: number, newRole: ClubRole): Promise<ApiResponse> {
         try {
             const membership = await this.prisma.membership.update({
                 where: {
@@ -127,7 +135,7 @@ export class MembershipService {
         }
     }
 
-    public async getClubMembers(clubId: string, page: number = 1, limit: number = 10): Promise<ApiResponse> {
+    public async getClubMembers(clubId: number, page: number = 1, limit: number = 10): Promise<ApiResponse> {
         try {
             const skip = (page - 1) * limit;
 
@@ -161,7 +169,7 @@ export class MembershipService {
         }
     }
 
-    public async getUserClubs(userId: string): Promise<ApiResponse> {
+    public async getUserClubs(userId: number): Promise<ApiResponse> {
         try {
             const memberships = await this.prisma.membership.findMany({
                 where: { userId },
@@ -177,7 +185,7 @@ export class MembershipService {
         }
     }
 
-    public async removeMember(userId: string, clubId: string): Promise<ApiResponse> {
+    public async removeMember(userId: number, clubId: number): Promise<ApiResponse> {
         try {
             const membership = await this.prisma.membership.delete({
                 where: {
@@ -198,6 +206,27 @@ export class MembershipService {
         } catch (error) {
             logger('\nError in MembershipService.ts removeMember(): ' + error);
             return new ApiResponse(false, 'Error removing member', 500, null);
+        }
+    }
+
+    public async updateMemberRoleById(membershipId: number, newRole: ClubRole): Promise<ApiResponse> {
+        try {
+            const membership = await this.prisma.membership.update({
+                where: { id: membershipId },
+                data: { role: newRole },
+                include: { club: true }
+            }); 
+            await sendMessage('club-member-role-updated', {
+                userId: membership.userId,
+                clubId: membership.clubId,
+                clubName: membership.club.name || 'unknown', 
+            })
+            return new ApiResponse(true, 'Member role updated successfully', 200, membership);
+            
+        } 
+        catch (error) {
+            logger('\nError in MembershipService.ts updateMemberRoleById():'+ error);
+            return new ApiResponse(false, 'Error updating member role', 500, null); 
         }
     }
 }

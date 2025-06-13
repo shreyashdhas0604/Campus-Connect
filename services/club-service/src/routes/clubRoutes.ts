@@ -24,13 +24,16 @@ router.put('/clubs/:id', clubController.updateClub);
 router.get('/clubs/:id', clubController.getClub);
 router.get('/search', clubController.searchClubs);
 router.patch('/clubs/:id/status', clubController.updateClubStatus);
+router.delete('/clubs/:id', clubController.deleteClub);
 
 // Membership Management Routes
-router.post('/memberships/join', clubController.joinClub);
+router.post('/memberships/join',clubController.joinClub);
 router.post('/memberships/leave', clubController.leaveClub);
 router.patch('/memberships/role', clubController.updateMemberRole);
+router.patch('/memberships/rolebyId', clubController.updateMemberRoleById);
 router.get('/clubs/:clubId/members', clubController.getClubMembers);
 router.get('/users/:userId/clubs', clubController.getUserClubs);
+// router.delete('/clubs/:id/members/:userId', clubController.removeMember);
 
 // Activity Management Routes
 router.post('/activities', clubController.createActivity);

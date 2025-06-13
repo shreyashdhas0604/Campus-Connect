@@ -10,20 +10,20 @@ export class ActivityController {
 
     public createActivity = async (req: Request, res: Response): Promise<void> => {
         const { clubId } = req.params;
-        const response = await this.activityService.createActivity(clubId, req.body);
+        const response = await this.activityService.createActivity(parseInt(clubId), req.body);
         res.status(response.statusCode).json(response);
     };
 
     public getClubActivities = async (req: Request, res: Response): Promise<void> => {
         const { clubId } = req.params;
-        const response = await this.activityService.getClubActivities(clubId);
+        const response = await this.activityService.getClubActivities(parseInt(clubId));
         res.status(response.statusCode).json(response);
     };
 
     public updateActivityStatus = async (req: Request, res: Response): Promise<void> => {
         const { activityId } = req.params;
         const { status } = req.body;
-        const response = await this.activityService.updateActivityStatus(activityId, status);
+        const response = await this.activityService.updateActivityStatus(parseInt(activityId), status);
         res.status(response.statusCode).json(response);
     };
 }

@@ -25,10 +25,17 @@ const ClubList = () => {
       const response = await apiClient.get('/club/search', {
         params: { query: searchTerm }
       });
-      setClubs(response?.data as Club[]); // Type assertion to ensure data matches Club[] type
+      console.log(response?.data?.data?.clubs); // Add this line for debugging
+      const data = response?.data?.data?.clubs;
+      if (Array.isArray(data)) {
+        setClubs(data as Club[]);
+      } else {
+        setClubs([]); // Ensure clubs is an array
+      }
       setError('');
     } catch (err) {
       setError('Failed to fetch clubs. Please try again later.');
+      setClubs([]); // Reset clubs to an empty array on error
     } finally {
       setLoading(false);
     }

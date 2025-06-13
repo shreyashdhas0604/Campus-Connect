@@ -45,7 +45,7 @@ export class ClubService {
         }
     }
 
-    public async updateClub(id: string, clubData: Partial<Club>): Promise<ApiResponse> {
+    public async updateClub(id: number, clubData: Partial<Club>): Promise<ApiResponse> {
         try {
             const club = await this.prisma.club.update({
                 where: { id },
@@ -65,7 +65,7 @@ export class ClubService {
         }
     }
 
-    public async getClub(id: string): Promise<ApiResponse> {
+    public async getClub(id: number): Promise<ApiResponse> {
         try {
             const club = await this.prisma.club.findUnique({
                 where: { id },
@@ -129,7 +129,7 @@ export class ClubService {
         }
     }
 
-    public async updateClubStatus(id: string, status: ClubStatus): Promise<ApiResponse> {
+    public async updateClubStatus(id: number, status: ClubStatus): Promise<ApiResponse> {
         try {
             const club = await this.prisma.club.update({
                 where: { id },
@@ -148,4 +148,31 @@ export class ClubService {
             return new ApiResponse(false, 'Error updating club status', 500, null);
         }
     }
+
+    public async deleteClub(id: number): Promise<ApiResponse> {
+        try {
+            const club = await this.prisma.club.delete({
+                where: { id }
+            });
+
+            if (!club) {
+                return new ApiResponse(false, 'Club not found', 404, null); 
+            }
+
+            console.log('Club deleted successfully'); // Log the successful deletion messag
+
+            await sendMessage('club-deleted', {
+                clubId: club.id,
+                timestamp: new Date().toISOString()
+            });
+
+            return new ApiResponse(true, 'Club deleted successfully', 200, club);
+
+        } 
+        catch (error) {
+            logger('\nError in ClubService.ts deleteClub():'+ error);
+            return new ApiResponse(false, 'Error deleting club', 500, null); 
+        }
+    }
+
 }

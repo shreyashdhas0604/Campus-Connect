@@ -89,6 +89,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8083:8083"
+      - "5556:5555"
     environment:
       - NODE_ENV=${NODE_ENV}
       - DATABASE_URL=${DATABASE_URL}

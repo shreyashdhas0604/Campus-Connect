@@ -12,11 +12,11 @@ Core functionalities:
 ### 2. Club Service
 Core functionalities:
 
-- Club creation and management
-- Club membership handling
+-✅ Club creation and management
+-✅ Club membership handling
 - Club categories management (Academic, Sports, Cultural, Technology, Social)
 - Club activities/events organization
-- Club member roles (President, Secretary, Members)
+-✅ Club member roles (President, Secretary, Members)
 - Club approval workflow
 
 

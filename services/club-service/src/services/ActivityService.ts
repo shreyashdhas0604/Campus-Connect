@@ -10,7 +10,7 @@ export class ActivityService {
         this.prisma = new PrismaClient();
     }
 
-    public async createActivity(clubId: string, activityData: any): Promise<ApiResponse> {
+    public async createActivity(clubId: number, activityData: any): Promise<ApiResponse> {
         try {
             // Validate club exists
             const club = await this.prisma.club.findUnique({
@@ -43,7 +43,7 @@ export class ActivityService {
         }
     }
 
-    public async getClubActivities(clubId: string, page?: number, limit?: number): Promise<ApiResponse> {
+    public async getClubActivities(clubId: number, page?: number, limit?: number): Promise<ApiResponse> {
         try {
             const skip = page && limit ? (page - 1) * limit : undefined;
             const take = limit || undefined;
@@ -62,7 +62,7 @@ export class ActivityService {
         }
     }
 
-    public async updateActivityStatus(activityId: string, status: string): Promise<ApiResponse> {
+    public async updateActivityStatus(activityId: number, status: string): Promise<ApiResponse> {
         try {
             const activity = await this.prisma.activity.update({
                 where: { id: activityId },
@@ -78,7 +78,7 @@ export class ActivityService {
 
     // Added missing methods that are used in the controller
 
-    public async updateActivity(activityId: string, activityData: any): Promise<ApiResponse> {
+    public async updateActivity(activityId: number, activityData: any): Promise<ApiResponse> {
         try {
             const activity = await this.prisma.activity.update({
                 where: { id: activityId },
@@ -92,7 +92,7 @@ export class ActivityService {
         }
     }
 
-    public async deleteActivity(activityId: string): Promise<ApiResponse> {
+    public async deleteActivity(activityId: number): Promise<ApiResponse> {
         try {
             await this.prisma.activity.delete({
                 where: { id: activityId }
@@ -105,7 +105,7 @@ export class ActivityService {
         }
     }
 
-    public async getActivity(activityId: string): Promise<ApiResponse> {
+    public async getActivity(activityId: number): Promise<ApiResponse> {
         try {
             const activity = await this.prisma.activity.findUnique({
                 where: { id: activityId }

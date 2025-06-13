@@ -25,7 +25,7 @@ private prisma: PrismaClient;
     }
 
     public async createUser(user: any): Promise<ApiResponse>{
-        try {
+        try { 
             const userData = user ;
             if(!userData){
                 return new ApiResponse(false, "Invalid user data", 400, null);
@@ -47,6 +47,7 @@ private prisma: PrismaClient;
                     username: userData.username,
                     password: userData.password,
                     role: userData.role,
+                    contactNumber: userData.contactNumber,
                     emailVerified: false,
                     otp: null,
                     department : userData.department,

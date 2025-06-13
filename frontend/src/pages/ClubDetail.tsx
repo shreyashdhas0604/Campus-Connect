@@ -32,12 +32,23 @@ interface Club {
   activities: Activity[];
 }
 
+const ROLES = [
+  'PRESIDENT',
+  'VICE_PRESIDENT',
+  'SECRETARY',
+  'TREASURER',
+  'MEMBER'
+];
+
 const ClubDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [club, setClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [myuser, setMyuser] = useState<any>({});
+  const [editingMember, setEditingMember] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>('');
 
   useEffect(() => {
     fetchClubDetails();
@@ -46,12 +57,45 @@ const ClubDetail = () => {
   const fetchClubDetails = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/api/clubs/${id}`);
-      setClub((response.data as any).data as Club);
-      
+      const user = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId = user.id;
+      console.log(userId);
+      const response = await apiClient.get(`/club/clubs/${id}`);
+      console.log(response.data);
+      let clubData = (response.data as any).data;
+      console.log(clubData);
+
+      // Fetch user details for each member
+      const membersWithDetails = await Promise.all(
+        clubData.memberships.map(async (member: any) => {
+          const userResponse = await apiClient.get(`/user/user/${member.userId}`);
+          const userData = (userResponse.data as any).data;
+          return {
+            ...member,
+            user: userData
+          };
+        })
+      );
+
+      console.log(membersWithDetails);
+      setClub({
+        ...clubData,
+        members: Array.isArray(membersWithDetails) ? membersWithDetails : [],
+        activities: Array.isArray(clubData.activities) ? clubData.activities : []
+      });
+
       // Check user's role in the club
-      const userClubsResponse = await apiClient.get('/api/users/me/clubs');
-      const userClub = (userClubsResponse.data as { data: Array<{ clubId: string; role: string }> }).data.find(c => c.clubId === id);
+      const userClubsResponse = await apiClient.get(`club/users/${userId}/clubs`);
+      console.log("userClubResponse.data : ", userClubsResponse.data?.data);
+      const userClubs = userClubsResponse.data?.data || [];
+      console.log("userClubs : ", userClubs);
+      const userClub = userClubs.find((c: any) => {
+        console.log("c : ", c);
+        console.log("id : ", id);
+        console.log("c.clubId : ", c.clubId);
+        return c.clubId === parseInt(id);
+      });
+      console.log("userClub : ", userClub);
       setUserRole(userClub?.role || null);
     } catch (err) {
       setError('Failed to fetch club details.');
@@ -61,10 +105,15 @@ const ClubDetail = () => {
   };
 
   const handleJoinClub = async () => {
+    const user = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId1 = user.id;
     try {
-      await apiClient.post(`/api/clubs/${id}/members`, {
-        userId: localStorage.getItem('userId')
+      const response = await apiClient.post('club/memberships/join', {
+        userId: userId1,
+        clubId: id,
+        role: 'MEMBER'
       });
+      console.log(response.data);
       fetchClubDetails();
     } catch (err) {
       setError('Failed to join the club.');
@@ -73,16 +122,72 @@ const ClubDetail = () => {
 
   const handleLeaveClub = async () => {
     try {
-      await apiClient.delete(`/api/clubs/${id}/members/${localStorage.getItem('userId')}`);
+      const user = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId1 = user.id;
+      await apiClient.delete(`/club/member/clubs/${id}/members/${userId1}`);
       fetchClubDetails();
     } catch (err) {
       setError('Failed to leave the club.');
     }
   };
 
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      await apiClient.delete(`/club/member/clubs/${id}/members/${memberId}`);
+      fetchClubDetails();
+    } catch (err) {
+      setError('Failed to remove member.');
+    }
+  };
+
+  const handleEditMemberRole = async (memberId: string, newRole: string) => {
+    try {
+      console.log('Updating member role:', memberId, newRole,id);
+      const res = await apiClient.patch('/club/memberships/rolebyId', {
+        memberId: memberId,
+        clubId: id,
+        role: newRole
+      });
+      console.log(res.data);
+      setEditingMember(null);
+      setSelectedRole('');
+      fetchClubDetails();
+    } catch (err) {
+      setError('Failed to update member role.');
+    }
+  };
+
+  const startEditingMember = (memberId: string, currentRole: string) => {
+    setEditingMember(memberId);
+    setSelectedRole(currentRole);
+  };
+
+  const cancelEditing = () => {
+    setEditingMember(null);
+    setSelectedRole('');
+  };
+
+  const handleEditClub = async () => {
+    // Implement the logic to edit the club
+    console.log('Edit club functionality');
+  };
+
+  const handleDeleteClub = async () => {
+    try {
+      await apiClient.delete(`/club/clubs/${id}`);
+      // Redirect or update the UI after deletion
+      console.log('Club deleted successfully');
+    } catch (err) {
+      setError('Failed to delete the club.');
+    }
+  };
+
   if (loading) return <div>Loading club details...</div>;
   if (error) return <div className="error">{error}</div>;
   if (!club) return <div>Club not found</div>;
+
+  const isAdmin = userRole === 'ADMIN';
+  const currentUser = JSON.parse(localStorage.getItem('userData') || '{}');
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -101,12 +206,31 @@ const ClubDetail = () => {
               Join Club
             </button>
           ) : (
-            <button
-              onClick={handleLeaveClub}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Leave Club
-            </button>
+            // Only show Leave Club button if user is not an admin
+            !isAdmin && (
+              <button
+                onClick={handleLeaveClub}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Leave Club
+              </button>
+            )
+          )}
+          {isAdmin && (
+            <>
+              <button
+                onClick={handleEditClub}
+                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+              >
+                Edit Club
+              </button>
+              <button
+                onClick={handleDeleteClub}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Delete Club
+              </button>
+            </>
           )}
         </div>
 
@@ -117,8 +241,62 @@ const ClubDetail = () => {
             {club.members.map((member) => (
               <div key={member.id} className="border rounded-lg p-4">
                 <h3 className="font-semibold">{member.user.name}</h3>
-                <p className="text-gray-600 text-sm">{member.role}</p>
+                
+                {/* Role display/edit */}
+                {editingMember === member.id ? (
+                  <div className="mt-2">
+                    <select
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value)}
+                      className="border rounded px-2 py-1 text-sm mb-2 w-full"
+                    >
+                      {ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {role.replace('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditMemberRole(member.id, selectedRole)}
+                        className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 text-sm">{member.role.replace('_', ' ')}</p>
+                )}
+                
                 <p className="text-gray-500 text-sm">Joined: {new Date(member.joinedAt).toLocaleDateString()}</p>
+                
+                {/* Admin controls */}
+                {isAdmin && editingMember !== member.id && (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => startEditingMember(member.id, member.role)}
+                      className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                    >
+                      Edit Role
+                    </button>
+                    {/* Don't show remove button for the current admin user */}
+                    {member.userId !== currentUser.id && (
+                      <button
+                        onClick={() => handleRemoveMember(member.userId)}
+                        className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

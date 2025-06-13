@@ -120,6 +120,10 @@ class APIClient {
   public delete = <T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
     return this.axiosInstance.delete<T>(url, config);
   };
+
+  public patch = <T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
+    return this.axiosInstance.patch<T>(url, data, config); 
+  };
 }
 
 const apiClient = new APIClient('http://localhost:8085/api');

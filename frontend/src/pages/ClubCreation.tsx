@@ -11,7 +11,7 @@ interface ClubFormData {
 }
 
 const ClubCreation = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const [formData, setFormData] = useState<ClubFormData>({
     name: '',
     description: '',
@@ -40,6 +40,8 @@ const ClubCreation = () => {
 
     try {
       const formDataToSend = new FormData();
+      const user = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId1 = user.id;
       
       // Explicitly append each field
       formDataToSend.append('name', formData.name);
@@ -64,6 +66,25 @@ const ClubCreation = () => {
 
 
       const response = await apiClient.post('/club/clubs', formDataToSend);
+      if (response.status !== 201) {
+        throw new Error('Failed to create club. Please try again.');
+      }
+      const addUser = await apiClient.post(`/club/memberships/join`,{
+        userId : userId1,
+        clubId : response?.data?.data?.id || null,
+      })
+
+      if(addUser.status!== 201) {
+        throw new Error('Failed to add user. Please try again.'); 
+      }
+
+      const updateUserStatusToAdmin = await apiClient.patch('/club/memberships/role',{
+        userId : userId1,
+        clubId : response?.data?.data?.id || null,
+        role : 'ADMIN'
+      })
+
+      console.log('updateUserStatusToAdmin : ', updateUserStatusToAdmin);
 
       console.log('Response:', response.data);
       navigate('/clubs');

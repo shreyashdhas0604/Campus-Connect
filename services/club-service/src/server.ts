@@ -40,7 +40,7 @@ async function startClubServiceServer() {
     
     // Move CORS before routes
     app.use(cors({
-      origin: true, // Allow all origins in development
+      origin: ["http://localhost:8085", "http://localhost:5173", "http://localhost:5174"], // Ensure localhost:5174 is included
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization'],
@@ -59,8 +59,8 @@ async function startClubServiceServer() {
     
     // Mount routes with the correct prefix
     app.use('/', clubRoutes);         // Updated path
-    app.use('/', membershipRoutes);   // Updated path
-    app.use('/', activityRoutes);     // Updated path
+    app.use('/member/', membershipRoutes);   // Updated path
+    app.use('/activity/', activityRoutes);     // Updated path
 
     app.get("/", (req, res) => {
       res.send("Club Service is running!");

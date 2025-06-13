@@ -48,7 +48,7 @@ public async getUser(req: any, res: any) {
     res.status(500).json({ success: false, message: 'Internal Server Error', data: null });
   }
 }
-
+ 
 public async createUser(req: any, res: any) {
   try {
     const userData = await this.userService.createUser(req.body);
